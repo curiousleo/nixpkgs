@@ -1,5 +1,11 @@
-{ stdenv, pkgs, fetchFromGitHub, rustPlatform, CoreServices, Security
-, cf-private }:
+{ stdenv
+, pkgs
+, fetchFromGitHub
+, rustPlatform
+, CoreServices
+, Security
+, cf-private
+}:
 
 rustPlatform.buildRustPackage rec {
   pname = "lorri";
@@ -13,7 +19,7 @@ rustPlatform.buildRustPackage rec {
   };
 
   BUILD_REV_COUNT = src.revCount or 1;
-  RUN_TIME_CLOSURE = pkgs.callPackage ./runtime.nix { };
+  RUN_TIME_CLOSURE = pkgs.callPackage ./runtime.nix {};
 
   nativeBuildInputs = [ pkgs.nix pkgs.direnv pkgs.which ];
   buildInputs =
