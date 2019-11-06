@@ -1,5 +1,3 @@
-# Unchanged copy of https://raw.githubusercontent.com/target/lorri/03f10395943449b1fc5026d3386ab8c94c520ee3/nix/runtime-closure.nix.template
-
 # Nix with sandboxing requires every path used at build time be
 # explicitly declared. If we simply passed in the paths, they
 # would be copied in as sources. Using builtins.storePath we're
