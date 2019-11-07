@@ -1,0 +1,41 @@
+{
+  pkgs ? import ./nix/nixpkgs.nix { },
+  src ? pkgs.nix-gitignore.gitignoreSource [".git/"] ./.
+}:
+((pkgs.callPackage ./Cargo.nix {
+  cratesIO = pkgs.callPackage ./nix/carnix/crates-io.nix {};
+}).lorri {}).override {
+  crateOverrides = pkgs.defaultCrateOverrides // {
+    lorri = attrs: {
+      name = "lorri";
+      # This is implicitely set by `builtins.fetchGit`
+      # (which we use in `src/ops/upgrade/upgrade.nix`).
+      # So if a user upgrades from a branch of the repository,
+      # it will return a revCount. Default to `1` for e.g.
+      # `self-upgrade local`.
+      BUILD_REV_COUNT = src.revCount or 1;
+      RUN_TIME_CLOSURE = pkgs.callPackage ./nix/runtime.nix {};
+      NIX_PATH = "nixpkgs=${./nix/bogus-nixpkgs}";
+
+      preConfigure = ''
+        . ${./nix/pre-check.sh}
+
+        # Do an immediate, light-weight test to ensure logged-evaluation
+        # is valid, prior to doing expensive compilations.
+        nix-build --show-trace ./src/logged-evaluation.nix \
+          --arg src ./tests/integration/basic/shell.nix \
+          --arg runTimeClosure "$RUN_TIME_CLOSURE" \
+          --no-out-link
+      '';
+
+      nativeBuildInputs = attrs.nativeBuildInputs or []
+        ++ [ pkgs.nix pkgs.direnv pkgs.which ];
+      buildInputs = attrs.buildInputs or []
+        ++ pkgs.stdenv.lib.optionals pkgs.stdenv.isDarwin [
+          pkgs.darwin.cf-private
+          pkgs.darwin.Security
+          pkgs.darwin.apple_sdk.frameworks.CoreServices
+        ];
+    };
+  };
+}

@@ -33,6 +33,7 @@ rustPlatform.buildRustPackage rec {
 
   passthru.updater = with builtins; writeScript "copy-runtime-nix.sh" ''
     #!${runtimeShell}
+    cp ${src}/default.nix ${toString ./default-upstream.nix}
     cp ${src}/nix/runtime.nix ${toString ./runtime.nix}
     cp ${src}/nix/runtime-closure.nix.template ${toString ./runtime-closure.nix.template}
   '';
