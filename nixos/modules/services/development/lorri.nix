@@ -4,12 +4,12 @@ let
   cfg = config.services.lorri;
   socketUnit = "lorri";
   socketPath = "lorri/daemon.socket";
-in with lib; {
+in {
   options = {
     services.lorri = {
-      enable = mkOption {
+      enable = lib.mkOption {
         default = false;
-        type = types.bool;
+        type = lib.types.bool;
         description = ''
           This option enables a systemd socket unit that listens on the
           well-known address used by lorri, a nix-shell replacement for project
@@ -20,11 +20,13 @@ in with lib; {
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     systemd.user.sockets.${socketUnit} = {
       description = "Socket for Lorri Daemon";
-      enable = true;
       wantedBy = [ "sockets.target" ];
+      unitConfig = {
+        ConditionUser = "!@system";
+      };
       socketConfig = {
         ListenStream = "%t/${socketPath}";
         RuntimeDirectory = "lorri";
@@ -35,15 +37,12 @@ in with lib; {
       description = "Lorri Daemon";
       requires = [ "${socketUnit}.socket" ];
       after = [ "${socketUnit}.socket" ];
-      path = with pkgs; [ nix gnutar gzip ];
+      path = with pkgs; [ config.nix.package gnutar gzip ];
       environment = {
-        # lorri is not yet stable.
-        RUST_BACKTRACE = "full";
         RUST_LOG = "warn";
       };
       unitConfig = {
         ConditionUser = "!@system";
-        RefuseManualStart = true;
       };
       serviceConfig = {
         ExecStart = "${pkgs.lorri}/bin/lorri daemon";
