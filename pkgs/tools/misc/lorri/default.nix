@@ -44,9 +44,6 @@ rustPlatform.buildRustPackage rec {
 
     cp ${src}/nix/runtime.nix ${toString ./runtime.nix}
     cp ${src}/nix/runtime-closure.nix.template ${toString ./runtime-closure.nix.template}
-
-    mkdir -p ${toString ./nix/bogus-nixpkgs}
-    cp -R ${src}/nix/bogus-nixpkgs ${toString ./nix/bogus-nixpkgs}
   '';
 
   nativeBuildInputs = [ pkgs.nix pkgs.direnv pkgs.which ];
