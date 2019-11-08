@@ -1,0 +1,175 @@
+diff --git a/src/builder.rs b/src/builder.rs
+index 0e0d43c..c607b95 100644
+--- a/src/builder.rs
++++ b/src/builder.rs
+@@ -424,6 +424,7 @@ derivation {{
+     /// Some nix builds can output non-UTF-8 encoded text
+     /// (arbitrary binary output). We should not crash in that case.
+     #[test]
++    #[ignore]
+     fn non_utf8_nix_output() -> std::io::Result<()> {
+         let tmp = tempfile::tempdir()?;
+         let cas = ContentAddressable::new(tmp.path().to_owned())?;
+diff --git a/src/main.rs b/src/main.rs
+index 8b62cf9..b21ac75 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -93,6 +93,7 @@ mod tests {
+ 
+     /// Try instantiating the trivial shell file we provide the user.
+     #[test]
++    #[ignore]
+     fn trivial_shell_nix() -> std::io::Result<()> {
+         let out = std::process::Command::new("nix-instantiate")
+             .args(&["--expr", TRIVIAL_SHELL_SRC])
+diff --git a/src/nix.rs b/src/nix.rs
+index 82695ee..2a3fa4c 100644
+--- a/src/nix.rs
++++ b/src/nix.rs
+@@ -1,5 +1,5 @@
+ //! Execute Nix commands using a builder-pattern abstraction.
+-//! ```rust
++//! ```no_run
+ //! extern crate lorri;
+ //! use lorri::nix;
+ //!
+@@ -92,7 +92,7 @@ pub struct GcRootTempDir(tempfile::TempDir);
+ impl<'a> CallOpts<'a> {
+     /// Create a CallOpts with the Nix expression `expr`.
+     ///
+-    /// ```rust
++    /// ```no_run
+     /// extern crate lorri;
+     /// use lorri::nix;
+     /// let output: Result<u8, _> = nix::CallOpts::expression("let x = 5; in x")
+@@ -127,7 +127,7 @@ impl<'a> CallOpts<'a> {
+     /// execution. The stderr processing thread will panic, and data
+     /// will buffer in the kernel. This could result in a deadlock.
+     ///
+-    /// ```rust
++    /// ```no_run
+     /// extern crate lorri;
+     /// use lorri::nix;
+     /// use std::sync::mpsc::channel;
+@@ -149,7 +149,7 @@ impl<'a> CallOpts<'a> {
+     /// the previous attribute.
+     ///
+     ///
+-    /// ```rust
++    /// ```no_run
+     /// extern crate lorri;
+     /// use lorri::nix;
+     /// let output: Result<u8, _> = nix::CallOpts::expression("let x = 5; in { a = x; }")
+@@ -174,7 +174,7 @@ impl<'a> CallOpts<'a> {
+     /// Specify an argument to the expression, where the argument's value
+     /// is to be interpreted as a string.
+     ///
+-    /// ```rust
++    /// ```no_run
+     /// extern crate lorri;
+     /// use lorri::nix;
+     /// let output: Result<String, _> = nix::CallOpts::expression(r#"{ name }: "Hello, ${name}!""#)
+@@ -191,7 +191,7 @@ impl<'a> CallOpts<'a> {
+ 
+     /// Evaluate the expression and parameters, and interpret as type T:
+     ///
+-    /// ```rust
++    /// ```no_run
+     /// extern crate lorri;
+     /// use lorri::nix;
+     ///
+@@ -246,7 +246,7 @@ impl<'a> CallOpts<'a> {
+ 
+     /// Build the expression and return a path to the build result:
+     ///
+-    /// ```rust
++    /// ```no_run
+     /// extern crate lorri;
+     /// use lorri::nix;
+     /// use std::path::{Path, PathBuf};
+@@ -276,7 +276,7 @@ impl<'a> CallOpts<'a> {
+     /// Note, `path()` returns an error if there are multiple store paths
+     /// returned by Nix:
+     ///
+-    /// ```rust
++    /// ```no_run
+     /// extern crate lorri;
+     /// use lorri::nix;
+     /// use std::path::{Path, PathBuf};
+@@ -312,7 +312,7 @@ impl<'a> CallOpts<'a> {
+     /// Build the expression and return a list of paths to the build results.
+     /// Like `.path()`, except it returns all store paths.
+     ///
+-    /// ```rust
++    /// ```no_run
+     /// extern crate lorri;
+     /// use lorri::nix;
+     /// use std::path::{Path, PathBuf};
+@@ -588,6 +588,7 @@ mod tests {
+     }
+ 
+     #[test]
++    #[ignore]
+     fn build_with_stderr_sender() {
+         env::set_var("NIX_PATH", "nixpkgs=./nix/bogus-nixpkgs/");
+ 
+diff --git a/tests/integration/bug110_duplicate_appends.rs b/tests/integration/bug110_duplicate_appends.rs
+index 0684cc7..23a132a 100644
+--- a/tests/integration/bug110_duplicate_appends.rs
++++ b/tests/integration/bug110_duplicate_appends.rs
+@@ -3,6 +3,7 @@ use direnvtestcase::DirenvTestCase;
+ use std::time::{Duration, Instant};
+ 
+ #[test]
++#[ignore]
+ fn not_so_slow() {
+     let mut testcase = DirenvTestCase::new("bug110_duplicate_appends");
+     testcase.evaluate().expect("Failed to build the first time");
+diff --git a/tests/integration/bug23_gopath.rs b/tests/integration/bug23_gopath.rs
+index fd3b062..5c13d58 100644
+--- a/tests/integration/bug23_gopath.rs
++++ b/tests/integration/bug23_gopath.rs
+@@ -3,6 +3,7 @@ use direnvtestcase::DirenvTestCase;
+ use std::env;
+ 
+ #[test]
++#[ignore]
+ fn bug23_gopath() {
+     env::set_var("GOPATH", "my-neat-go-path");
+     let mut testcase = DirenvTestCase::new("bug23_gopath");
+diff --git a/tests/integration/bug23_setuphook.rs b/tests/integration/bug23_setuphook.rs
+index 5bfa61f..1f0a73f 100644
+--- a/tests/integration/bug23_setuphook.rs
++++ b/tests/integration/bug23_setuphook.rs
+@@ -3,6 +3,7 @@ use direnvtestcase::DirenvTestCase;
+ use std::env;
+ 
+ #[test]
++#[ignore]
+ fn bug23_shell_hook() {
+     env::set_var("EXAMPLE", "my-neat-path");
+     let mut testcase = DirenvTestCase::new("bug23_setuphook");
+diff --git a/tests/integration/bug97_varmap_leak.rs b/tests/integration/bug97_varmap_leak.rs
+index 93f3fb0..76500db 100644
+--- a/tests/integration/bug97_varmap_leak.rs
++++ b/tests/integration/bug97_varmap_leak.rs
+@@ -3,6 +3,7 @@ use direnvtestcase::DirenvTestCase;
+ use std::collections::HashSet;
+ 
+ #[test]
++#[ignore]
+ fn bug97_varmap_leak() {
+     let mut testcase = DirenvTestCase::new("bug97_varmap_leak");
+     testcase.evaluate().expect("Failed to build the first time");
+diff --git a/tests/integration/trivial.rs b/tests/integration/trivial.rs
+index 8726fed..4f17255 100644
+--- a/tests/integration/trivial.rs
++++ b/tests/integration/trivial.rs
+@@ -2,6 +2,7 @@ use direnv::DirenvValue;
+ use direnvtestcase::DirenvTestCase;
+ 
+ #[test]
++#[ignore]
+ fn trivial() -> std::io::Result<()> {
+     let mut testcase = DirenvTestCase::new("basic");
+     let res = testcase.evaluate().expect("Failed to build the first time");

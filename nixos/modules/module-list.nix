@@ -318,7 +318,6 @@
   ./services/development/bloop.nix
   ./services/development/hoogle.nix
   ./services/development/jupyter/default.nix
-  ./services/development/lorri.nix
   ./services/editors/emacs.nix
   ./services/editors/infinoted.nix
   ./services/games/factorio.nix

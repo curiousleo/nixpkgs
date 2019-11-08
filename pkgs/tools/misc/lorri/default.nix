@@ -11,16 +11,7 @@
 , cf-private
 }:
 
-let
-  src = fetchFromGitHub {
-    owner = "target";
-    repo = pname;
-    # Run `eval $(nix-build -A lorri.updater)` after updating the revision!
-    # See passthru.update below for what this does.
-    rev = "03f10395943449b1fc5026d3386ab8c94c520ee3";
-    sha256 = "0fcl79ndaziwd8d74mk1lsijz34p2inn64b4b4am3wsyk184brzq";
-  };
-
+rustPlatform.buildRustPackage rec {
   pname = "lorri";
   version = "rolling-release-2019-10-30";
 
@@ -31,27 +22,34 @@ let
     maintainers = [ maintainers.Profpatsch ];
   };
 
+  src = fetchFromGitHub {
+    owner = "target";
+    repo = pname;
+    # Run `eval $(nix-build -A lorri.updater)` after updating the revision!
+    # See passthru.update below for what this does.
+    rev = "03f10395943449b1fc5026d3386ab8c94c520ee3";
+    sha256 = "0fcl79ndaziwd8d74mk1lsijz34p2inn64b4b4am3wsyk184brzq";
+  };
 
-in
-  import ./default-upstream.nix { inherit pkgs src; } // {
-    updater = with builtins; writeScript "copy-runtime-nix.sh" ''
+  patches = [ ./ignore-integration-tests.patch ];
+  doCheck = true;
+  cargoSha256 = "1daff4plh7hwclfp21hkx4fiflh9r80y2c7k2sd3zm4lmpy0jpfz";
+
+  BUILD_REV_COUNT = src.revCount or 1;
+  RUN_TIME_CLOSURE = pkgs.callPackage ./runtime.nix {};
+
+  passthru.updater = with builtins; writeScript "copy-runtime-nix.sh" ''
     #!${runtimeShell}
-      cp ${src}/default.nix ${toString ./default-upstream.nix}
-      cp ${src}/Cargo.nix ${toString ./Cargo.nix}
-      cp ${src}/nix/crates-io.nix ${toString ./crates-io.nix}
-      cp ${src}/nix/runtime.nix ${toString ./runtime.nix}
-      cp ${src}/nix/runtime-closure.nix.template ${toString ./runtime-closure.nix.template}
-    '';
-  }
+    set -euo pipefail
 
-  #BUILD_REV_COUNT = src.revCount or 1;
-  #RUN_TIME_CLOSURE = pkgs.callPackage ./runtime.nix {};
+    cp ${src}/nix/runtime.nix ${toString ./runtime.nix}
+    cp ${src}/nix/runtime-closure.nix.template ${toString ./runtime-closure.nix.template}
 
-  #nativeBuildInputs = [ pkgs.nix pkgs.direnv pkgs.which ];
-  #buildInputs =
-    #stdenv.lib.optionals stdenv.isDarwin [ CoreServices Security cf-private ];
+    mkdir -p ${toString ./nix/bogus-nixpkgs}
+    cp -R ${src}/nix/bogus-nixpkgs ${toString ./nix/bogus-nixpkgs}
+  '';
 
-  #cargoSha256 = "1daff4plh7hwclfp21hkx4fiflh9r80y2c7k2sd3zm4lmpy0jpfz";
-
-  # Note that https://travis-ci.org/target/lorri/builds/605036891 passed.
-  #doCheck = false;
+  nativeBuildInputs = [ pkgs.nix pkgs.direnv pkgs.which ];
+  buildInputs =
+    stdenv.lib.optionals stdenv.isDarwin [ CoreServices Security cf-private ];
+}
